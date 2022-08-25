@@ -1,0 +1,101 @@
+#!/usr/bin/ksh 
+#########################################################################################
+#
+# Description:
+#
+# jobopsdsa000001 - delete the CUSTOMERTRANSACTION data older than 7 days
+#                    
+#
+#########################################################################################
+#
+# Exit Codes:
+#
+# 0 - Job completed successfully
+# Non 0 - Job failed
+#
+#########################################################################################
+# Implementation History:
+#-------------------------------------------------------------------------------
+#  Date        | Implemented by    |    Reason
+#-------------------------------------------------------------------------------
+# Mar 16, 2020 | Bhagvan Das | Initial Version  
+#########################################################################################
+
+
+#########################################################################################
+# Setup the HostCapture environment
+#########################################################################################
+FPATH=/apps/local/functions:$FPATH
+export FPATH
+
+# setup job environment passing jobname as a parm ($0)
+ctfs_setup_env_java8 $0
+
+# Set the log file name. Override the setting from the setup_env
+LOGFNAME=$LOGDIR/$PROGNAME
+
+#-- write logging records --
+ctfs_logger "--begin jobopsdsa000001--"
+
+# next line tells where the Tivoli job output can be found
+ctfs_logger "UNISON_STDLIST is $UNISON_STDLIST"
+
+#Set APP_PATH to current location
+APP_PATH=/apps/ctalapps/dsaAcxiomBatch
+
+
+# add libraries for this job to the CLASSPATH created in ctfs_setup_env
+CLASSPATH=$CLASSPATH:$APP_PATH/dsa_acxiom_batch.jar:$APP_PATH/ojdbc6-11.2.0.3.jar:.
+ctfs_logger "CLASSPATH is $CLASSPATH"
+
+#########################################################################################
+# Invoke the Java application to delete the customertransaction data
+#########################################################################################
+
+ctfs_logger "Invoking java application to delete the customertransaction data..."
+
+java -Xms256M -Xmx1024M com.ctfs.dsa.batch.DSACustomerTransactionBatch
+rc=$?
+
+if test $rc -ne 0
+then
+	if test $rc -eq 1
+	then
+		ctfs_logger "$PROGNAME failed - SQL Exception while trying to extract data from DB" Warning
+		exit $rc
+	fi
+	if test $rc -eq 2
+	then
+		ctfs_logger "$PROGNAME failed - DB Failure Exception while trying to extract data from DB" Warning
+		exit $rc
+	fi
+	if test $rc -eq 3
+	then
+		ctfs_logger "$PROGNAME failed - IOException while writing data into the output file" Warning
+		exit $rc
+	fi
+	if test $rc -eq 4
+	then
+		ctfs_logger "$PROGNAME failed - General Exception while writing extracting user profile data" Warning
+		exit $rc
+	fi
+	if test $rc -eq 5
+	then
+		ctfs_logger "$PROGNAME succeeded but connection to DB was not closed" Harmless
+	fi
+else
+   ctfs_logger "$PROGNAME successfully deleted the CUSTOMERTRANSACTION data"
+fi
+
+#########################################################################################
+# Delete old records older than 7 days
+#########################################################################################
+find $LOGDIR -name "`basename $LOGFNAME`*" -mtime +15 -exec rm -f {} \;
+
+#########################################################################################
+# End of Job
+#########################################################################################
+ctfs_logger "------jobopsdsa000001 ends-------" 
+ctfs_archive_log
+
+exit $rc

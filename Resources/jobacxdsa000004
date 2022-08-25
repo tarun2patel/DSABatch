@@ -1,0 +1,100 @@
+#!/usr/bin/ksh 
+#########################################################################################
+#
+# Description:
+#
+# jobacxdsa000004 - delets  Kofax  data from table less than 3 days
+#                    
+#
+#########################################################################################
+#
+# Exit Codes:
+#
+# 0 - Job completed successfully
+# Non 0 - Job failed
+#
+#########################################################################################
+# Implementation History:
+#-------------------------------------------------------------------------------
+#  Date        | Implemented by    |    Reason
+#-------------------------------------------------------------------------------
+# Oct 31, 2019 | srish | Initial Version  
+#########################################################################################
+
+
+#########################################################################################
+# Setup the HostCapture environment
+#########################################################################################
+FPATH=/apps/local/functions:$FPATH
+export FPATH
+
+# setup job environment passing jobname as a parm ($0)
+ctfs_setup_env_java8 $0
+
+# Set the log file name. Override the setting from the setup_env
+LOGFNAME=$LOGDIR/$PROGNAME
+
+#-- write logging records --
+ctfs_logger "--begin jobacxdsa000004--"
+
+# next line tells where the Tivoli job output can be found
+ctfs_logger "UNISON_STDLIST is $UNISON_STDLIST"
+
+#Set APP_PATH to current location
+APP_PATH=/apps/ctalapps/dsaAcxiomBatch
+
+# add libraries for this job to the CLASSPATH created in ctfs_setup_env
+CLASSPATH=$CLASSPATH:$APP_PATH/dsa_acxiom_batch.jar:$APP_PATH/ojdbc6-11.2.0.3.jar:.
+ctfs_logger "CLASSPATH is $CLASSPATH"
+
+#########################################################################################
+# Invoke the Java application to extract Kofax data
+#########################################################################################
+
+ctfs_logger "Invoking java application to delete Kofax  data..."
+
+java -Xms256M -Xmx1024M com.ctfs.dsa.batch.DSAKofaxTransBatch
+rc=$?
+
+if test $rc -ne 0
+then
+	if test $rc -eq 1
+	then
+		ctfs_logger "$PROGNAME failed - SQL Exception while trying to delete data from DB" Warning
+		exit $rc
+	fi
+	if test $rc -eq 2
+	then
+		ctfs_logger "$PROGNAME failed - DB Failure Exception while trying to delete data from DB" Warning
+		exit $rc
+	fi
+	if test $rc -eq 3
+	then
+		ctfs_logger "$PROGNAME failed - IOException while writing data into the output file" Warning
+		exit $rc
+	fi
+	if test $rc -eq 4
+	then
+		ctfs_logger "$PROGNAME failed - General Exception while writing delete user profile data" Warning
+		exit $rc
+	fi
+	if test $rc -eq 5
+	then
+		ctfs_logger "$PROGNAME succeeded but connection to DB was not closed" Harmless
+	fi
+else
+   ctfs_logger "$PROGNAME successfully completed deleted kofax data"
+fi
+
+#########################################################################################
+# Delete old files and logs older than 1 month 
+#########################################################################################
+find $LOGDIR -name "`basename $LOGFNAME`*" -mtime +15 -exec rm -f {} \;
+
+#########################################################################################
+# End of Job
+#########################################################################################
+ctfs_logger "------jobacxdsa000004 ends-------" 
+ctfs_archive_log
+
+exit $rc

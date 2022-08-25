@@ -1,0 +1,16 @@
+db_host_name=s9cb00oltdb01.ctal.ctc
+db_user_id=app_instcr
+db_password=ppapp_admin
+db_instance_name=olt1ppdb
+db_port_number=4150
+db_driver_name=oracle.jdbc.driver.OracleDriver
+db_connection_url=jdbc:oracle:thin:@s9cb00oltdb01.ctal.ctc:4150:olt1ppdb
+#Purge properties
+PurgeInteractionDataOlderThan=90
+batchSize=1000
+#WICI DB details
+db_wici_user_id=WEBIC_APP
+db_wici_password=olt_webicpp1_0913
+db_wici_driver_name=oracle.jdbc.driver.OracleDriver
+db_wici_connection_url=jdbc:oracle:thin:@s9cb00oltdb01:4150:olt1ppdb
+customerTransactionBatchSize=1000

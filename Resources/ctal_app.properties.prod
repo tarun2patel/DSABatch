@@ -1,0 +1,16 @@
+db_host_name=p9cbajoltdb01
+db_user_id=app_instcr
+db_password=pappadmin
+db_instance_name=olt1pdb
+db_port_number=4150
+db_driver_name=oracle.jdbc.driver.OracleDriver
+db_connection_url=jdbc:oracle:thin:@(description=(address_list=(failover = on)(load_balance = off)(address=(protocol=tcp)(host=p9cbajoltdb01)(port=4150))(address=(protocol=tcp)(host=p9cbwpoltdb01)(port=4150))(address=(protocol=tcp)(host=p9cbwpoltdb02)(port=4150)))(connect_data=(server=dedicated)(service_name=olt1pdb_svc)))
+#Purge properties
+PurgeInteractionDataOlderThan=90
+batchSize=1000
+#WICI DB details
+db_wici_user_id=WEBIC_APP
+db_wici_password=olt_webicpr1_0913
+db_wici_driver_name=oracle.jdbc.driver.OracleDriver
+db_wici_connection_url=jdbc:oracle:thin:@(description=(address_list=(failover = on)(load_balance = off)(address=(protocol=tcp)(host=p9cbajoltdb01)(port=4150))(address=(protocol=tcp)(host=p9cbwpoltdb01)(port=4150))(address=(protocol=tcp)(host=p9cbwpoltdb02)(port=4150)))(connect_data=(server=dedicated)(service_name=olt1pdb_svc)))
+customerTransactionBatchSize=1000
